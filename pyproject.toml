@@ -35,6 +35,11 @@ dependencies = [
 where = ["src"]
 exclude = ["ci"]
 
+[dependency-groups]
+dev = [
+    "ruff>=0.15.12",
+]
+
 [project.scripts]
 mrmat-infra-config = "mrmat_infra_tooling.config.cli:run"
 mrmat-infra-dns-update = "mrmat_infra_tooling.dns_update.cli:run"

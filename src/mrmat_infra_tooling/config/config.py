@@ -1,4 +1,3 @@
-import base64
 import pathlib
 from typing import Any
 

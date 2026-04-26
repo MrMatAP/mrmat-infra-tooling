@@ -1,4 +1,3 @@
-import typing
 import enum
 import sys
 import pathlib
