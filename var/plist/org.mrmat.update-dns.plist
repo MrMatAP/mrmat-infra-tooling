@@ -16,8 +16,8 @@
         sudo rm /Library/LaunchDaemons/org.mrmat.update-dns.plist
 
     Logs:
-        /var/log/mrmat/update-dns.log
-        /var/log/mrmat/update-dns.err
+        /opt/mrmat/log/update-dns.log
+        /opt/mrmat/log/update-dns.err
 
     Notes:
     - Runs as a LaunchDaemon (root) so it can read /opt/mrmat/etc/covenant.keytab
@@ -41,17 +41,16 @@
     <!-- Script to execute -->
     <key>ProgramArguments</key>
     <array>
-        <string>/usr/local/bin/python3</string>
-        <string>/opt/mrmat/libexec/update_dns.py</string>
+        <string>/opt/homebrew/bin/uvx</string>
+        <string>--from</string>
+        <string>git+https://github.com/MrMatAP/mrmat-infra-tooling.git@1.1.7</string>
+        <string>mrmat-infra-dns-update</string>
         <string>--verbose</string>
     </array>
 
     <!-- Environment variables -->
     <key>EnvironmentVariables</key>
     <dict>
-        <!-- Point libkrb5 at the host keytab for credential acquisition -->
-        <key>KRB5_CLIENT_KTNAME</key>
-        <string>/opt/mrmat/etc/covenant.keytab</string>
         <!-- Suppress macOS Kerberos GUI dialogs -->
         <key>KRB5_CONFIG</key>
         <string>/etc/krb5.conf</string>
@@ -89,10 +88,10 @@
 
     <!-- Logging -->
     <key>StandardOutPath</key>
-    <string>/var/log/mrmat/update-dns.log</string>
+    <string>/opt/mrmat/log/update-dns.log</string>
 
     <key>StandardErrorPath</key>
-    <string>/var/log/mrmat/update-dns.err</string>
+    <string>/opt/mrmat/log/update-dns.err</string>
 
     <!-- Process priority: background class, no UI interaction needed -->
     <key>ProcessType</key>
