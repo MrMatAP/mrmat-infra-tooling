@@ -162,6 +162,8 @@ async def main() -> int:
         config = RootConfig.load(config_path=args.config_path)
 
         hostname = socket.gethostname().removesuffix('.local')
+        if hostname.endswith(config.dns.forward_zone):
+            hostname = hostname.split('.')[0]
         addrs = get_host_addresses(hostname)
         kinit(keytab=config.host.keytab, principal=config.host.principal)
         script = build_nsupdate_script(
