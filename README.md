@@ -1,1 +1,3 @@
-# mrmat-infra-tooling
+# MrMat :: Infra Tooling
+
+Tooling for integration in my ecosystem"

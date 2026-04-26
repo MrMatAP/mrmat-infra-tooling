@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+    "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+    org.mrmat.update-dns.plist
+    ==========================
+    Launchd agent that re-registers DNS (A, AAAA, PTR) via GSS-TSIG whenever
+    the network configuration changes, using the host Kerberos keytab.
+
+    Installation:
+        sudo cp org.mrmat.update-dns.plist /Library/LaunchDaemons/
+        sudo launchctl bootstrap system /Library/LaunchDaemons/org.mrmat.update-dns.plist
+
+    Uninstall:
+        sudo launchctl bootout system /Library/LaunchDaemons/org.mrmat.update-dns.plist
+        sudo rm /Library/LaunchDaemons/org.mrmat.update-dns.plist
+
+    Logs:
+        /var/log/mrmat/update-dns.log
+        /var/log/mrmat/update-dns.err
+
+    Notes:
+    - Runs as a LaunchDaemon (root) so it can read /opt/mrmat/etc/covenant.keytab
+      and react to system-wide network events.
+    - WatchPaths monitors /var/run/resolv.conf — macOS rewrites this file
+      whenever the active network interface or DNS configuration changes
+      (DHCP lease renewal, interface up/down, Wi-Fi roaming, VPN connect/
+      disconnect).  This is the lightest-weight network-change trigger
+      available without a full SCNetworkReachability daemon.
+    - ThrottleInterval prevents a storm of re-registrations if the network
+      flaps (e.g., during DHCP renewal); 30 s is a reasonable settling time.
+    - RunAtLoad performs an initial registration at boot / agent load time.
+-->
+<plist version="1.0">
+<dict>
+
+    <!-- Identity -->
+    <key>Label</key>
+    <string>org.mrmat.update-dns</string>
+
+    <!-- Script to execute -->
+    <key>ProgramArguments</key>
+    <array>
+        <string>/usr/local/bin/python3</string>
+        <string>/opt/mrmat/libexec/update_dns.py</string>
+        <string>--verbose</string>
+    </array>
+
+    <!-- Environment variables -->
+    <key>EnvironmentVariables</key>
+    <dict>
+        <!-- Point libkrb5 at the host keytab for credential acquisition -->
+        <key>KRB5_CLIENT_KTNAME</key>
+        <string>/opt/mrmat/etc/covenant.keytab</string>
+        <!-- Suppress macOS Kerberos GUI dialogs -->
+        <key>KRB5_CONFIG</key>
+        <string>/etc/krb5.conf</string>
+    </dict>
+
+    <!--
+        Trigger: watch for network configuration changes.
+        /var/run/resolv.conf is rewritten by configd on every network event.
+        Add /var/run/NetworkInterfaces.plist for additional coverage if needed.
+    -->
+    <key>WatchPaths</key>
+    <array>
+        <string>/var/run/resolv.conf</string>
+        <string>/Library/Preferences/SystemConfiguration/NetworkInterfaces.plist</string>
+    </array>
+
+    <!-- Run once at load time (boot / manual bootstrap) -->
+    <key>RunAtLoad</key>
+    <true/>
+
+    <!--
+        Minimum seconds between consecutive runs.
+        Prevents hammering DNS during rapid network changes.
+    -->
+    <key>ThrottleInterval</key>
+    <integer>30</integer>
+
+    <!--
+        Restart policy: if the script exits non-zero, launchd will not
+        automatically retry (network change will trigger it again naturally).
+        Set to true only if you want aggressive retry on failure.
+    -->
+    <key>KeepAlive</key>
+    <false/>
+
+    <!-- Logging -->
+    <key>StandardOutPath</key>
+    <string>/var/log/mrmat/update-dns.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>/var/log/mrmat/update-dns.err</string>
+
+    <!-- Process priority: background class, no UI interaction needed -->
+    <key>ProcessType</key>
+    <string>Background</string>
+
+    <!-- Working directory -->
+    <key>WorkingDirectory</key>
+    <string>/opt/mrmat</string>
+
+    <!--
+        umask 0022 — log files should be root:wheel readable
+        (launchd default; explicit here for clarity)
+    -->
+    <key>Umask</key>
+    <integer>18</integer>
+
+    <!-- Timeout: kill the script if it runs longer than 60 seconds -->
+    <key>TimeOut</key>
+    <integer>60</integer>
+
+</dict>
+</plist>
