@@ -1,0 +1,40 @@
+[build-system]
+requires = [
+  "setuptools==80.10.2",
+  "build==1.3.0",
+  "wheel==0.46.3"
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mrmat-infra-tooling"
+description = "Tooling for integration in my ecosystem"
+urls = { "Sources" = "https://github.com/MrMatAP/mrmat-infra-tooling.git" }
+keywords = [ "experimental" ]
+readme = "README.md"
+authors = [
+  { "name" = "Mathieu Imfeld", "email" = "imfeldma+9jqerw@gmail.com" }
+]
+maintainers = [
+  { "name" = "Mathieu Imfeld", "email" = "imfeldma+9jqerw@gmail.com" }
+]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Programming Language :: Python :: 3.13"
+]
+requires-python = ">=3.13"
+dynamic = ["version"]
+dependencies = [
+    "dnspython>=2.8.0",
+    "pydantic>=2.13.3",
+    "pyyaml>=6.0.3",
+    "rich>=15.0.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+exclude = ["ci"]
+
+[project.scripts]
+mrmat-infra-config = "mrmat_infra_tooling.config.cli:run"
+mrmat-infra-dns-update = "mrmat_infra_tooling.dns_update.cli:run"
